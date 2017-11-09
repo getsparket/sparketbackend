@@ -45,5 +45,15 @@
     (log/info component "started"))
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
+(defn get-most-similar-match
+  [app-state supported-things]
+  (first (second (first (group-by :similarity (get-list-of-similarities app-state supported-things))))))
+
+(defn get-list-of-similarities
+  "should return a list of maps of closest to furthest matches for a user-inputted-text in app-state"
+  [app-state supported-things]
+  (let [user-inputted (:user-inputted-text app-state)]
+    (for [x supported-things]
+      (assoc x :similarity (fuzzy/jaro user-inputted (:name x))))) )
 (defn -main [& args]
   (start-app args))
