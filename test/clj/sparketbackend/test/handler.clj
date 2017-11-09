@@ -28,3 +28,11 @@
                             {:name  "Apple iPhone 6S+ 32GB"  :price 350}]]
 
       (is (= "Apple iPhone 6S 128GB" (:name (core/get-most-similar-match app-state supported-things)))))))
+
+(deftest state-machine
+  (testing "can do state machine thing"
+    (let [fsm {'Start {:init 'Ready}
+               'Ready {:getting-name-of-thing 'Do-Thing}}
+          app-state {:state 'Start}]
+      (is (= {:state 'Ready} (core/next-state app-state :init))))))
+

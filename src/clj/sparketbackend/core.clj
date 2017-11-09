@@ -45,6 +45,16 @@
     (log/info component "started"))
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
+(def fsm {'Start {:init 'Ready}
+          'Ready {:getting-name-of-thing 'Do-Thing}})
+
+(defn next-state
+  "Updates app-state to contain the state reached by transitioning from the
+ current state."
+  [app-state transition]
+  (let [new-state (get-in fsm [(:state app-state) transition])]
+    (assoc app-state :state new-state)))
+
 (defn get-most-similar-match
   [app-state supported-things]
   (first (second (first (group-by :similarity (get-list-of-similarities app-state supported-things))))))
