@@ -30,9 +30,21 @@
       (is (= "Apple iPhone 6S 128GB" (:name (core/get-most-similar-match app-state supported-things)))))))
 
 (deftest state-machine
-  (testing "can do state machine thing"
-    (let [fsm {'Start {:init 'Ready}
-               'Ready {:getting-name-of-thing 'Do-Thing}}
-          app-state {:state 'Start}]
-      (is (= {:state 'Ready} (core/next-state app-state :init))))))
-
+  (let [fsm {'Start {:init 'Ready}
+             'Ready {:getting-name-of-thing 'Identifying-Thing}
+             'Identifying-Thing {:exact-match 'Exact-Match
+                                 :inexact-match 'Inexact-Match}
+             'Exact-Match {:zip-code 'Zip-Code}}
+        user-inputted-text "Apple iPhone 6S 128GB"
+        supported-things [{:name "Apple iPhone 6S 128GB"  :price 450}
+                          {:name  "Apple iPhone 6S 64GB"  :price 400}
+                          {:name  "Apple iPhone 6S 32GB"  :price 350}
+                          {:name  "Apple iPhone 6S+ 128GB" :price 500}
+                          {:name  "Apple iPhone 6S+ 64GB"  :price 550}
+                          {:name  "Apple iPhone 6S+ 32GB"  :price 350}]]
+    (testing "can do state machine thing"
+      (let [app-state {:state 'Start}]
+        (is (= {:state 'Ready} (core/next-state app-state :init)))))
+    (testing "can, given some user input, change the state"
+      (let [app-state {:state 'Identifying-Thing}]
+        (is (= {:state 'Exact-Match} (core/handle-identifying-item app-state supported-things user-inputted-text)))))))

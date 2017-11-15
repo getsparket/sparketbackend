@@ -5,8 +5,10 @@
             [sparketbackend.config :refer [env]]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
-            [mount.core :as mount])
+            [mount.core :as mount]
+            [clj-fuzzy.metrics :as fuzzy])
   (:gen-class))
+
 
 (def cli-options
   [["-p" "--port PORT" "Port number"
@@ -46,7 +48,10 @@
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
 (def fsm {'Start {:init 'Ready}
-          'Ready {:getting-name-of-thing 'Do-Thing}})
+          'Ready {:getting-name-of-thing 'Identifying-Thing}
+          'Identifying-Thing {:exact-match 'Exact-Match
+                              :inexact-match 'Inexact-Match}
+          'Exact-Match {:zip-code 'Zip-Code}})
 
 (defn next-state
   "Updates app-state to contain the state reached by transitioning from the
@@ -65,5 +70,16 @@
   (let [user-inputted (:user-inputted-text app-state)]
     (for [x supported-things]
       (assoc x :similarity (fuzzy/jaro user-inputted (:name x))))) )
+      (assoc x :similarity (fuzzy/jaro user-inputted (:name x))))))
+
+(defn get-most-similar-match
+  [app-state supported-things]
+  (first (second (first (group-by :similarity (get-list-of-similarities app-state supported-things))))))
+
+(defn handle-identifying-item [app-state supported-things user-inputted-text]
+  (let [similar (get-most-similar-match (assoc app-state :user-inputted-text user-inputted-text) supported-things)]
+    (print similar) ;; stub for side-effectful thing
+    (next-state app-state :exact-match)))
+
 (defn -main [& args]
   (start-app args))
