@@ -60,16 +60,11 @@
   (let [new-state (get-in fsm [(:state app-state) transition])]
     (assoc app-state :state new-state)))
 
-(defn get-most-similar-match
-  [app-state supported-things]
-  (first (second (first (group-by :similarity (get-list-of-similarities app-state supported-things))))))
-
 (defn get-list-of-similarities
   "should return a list of maps of closest to furthest matches for a user-inputted-text in app-state"
   [app-state supported-things]
   (let [user-inputted (:user-inputted-text app-state)]
     (for [x supported-things]
-      (assoc x :similarity (fuzzy/jaro user-inputted (:name x))))) )
       (assoc x :similarity (fuzzy/jaro user-inputted (:name x))))))
 
 (defn get-most-similar-match
@@ -78,8 +73,9 @@
 
 (defn handle-identifying-item [app-state supported-things user-inputted-text]
   (let [similar (get-most-similar-match (assoc app-state :user-inputted-text user-inputted-text) supported-things)]
-    (print similar) ;; stub for side-effectful thing
-    (next-state app-state :exact-match)))
+    (-> app-state
+        (assoc :most-similar similar)
+        (next-state :exact-match))))
 
 (defn -main [& args]
   (start-app args))

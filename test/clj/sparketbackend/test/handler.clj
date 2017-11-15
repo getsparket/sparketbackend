@@ -47,4 +47,4 @@
         (is (= {:state 'Ready} (core/next-state app-state :init)))))
     (testing "can, given some user input, change the state"
       (let [app-state {:state 'Identifying-Thing}]
-        (is (= {:state 'Exact-Match} (core/handle-identifying-item app-state supported-things user-inputted-text)))))))
+        (is (= {:state 'Exact-Match :most-similar {:name "Apple iPhone 6S 128GB", :price 450, :similarity 1.0}} (core/handle-identifying-item app-state supported-things user-inputted-text)))))))
