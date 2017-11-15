@@ -1,8 +1,7 @@
 (ns user
-  (:require 
-            [mount.core :as mount]
+  (:require [mount.core :as mount]
             [sparketbackend.figwheel :refer [start-fw stop-fw cljs]]
-            sparketbackend.core))
+            [sparketbackend.core :as core]))
 
 (defn start []
   (mount/start-without #'sparketbackend.core/repl-server))
