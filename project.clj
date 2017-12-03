@@ -15,6 +15,7 @@
                  [metosin/ring-http-response "0.9.0"]
                  [mount "0.1.11"]
                  [org.clojure/clojure "1.9.0-alpha16"]
+                 [org.clojure/core.async "0.3.443"]
                  [org.clojure/clojurescript "1.9.946" :scope "provided"]
                  [org.clojure/tools.cli "0.3.5"]
                  [org.clojure/tools.logging "0.4.0"]
@@ -24,8 +25,11 @@
                  [ring-webjars "0.2.0"]
                  [ring/ring-core "1.6.3"]
                  [ring/ring-defaults "0.3.1"]
-                 [selmer "1.11.2"]]
+                 [selmer "1.11.2"]
+                 [fsmviz "0.1.2"]
                  [clj-fuzzy "0.4.1"]
+                 [clj-http "3.7.0"]
+                 [org.clojure/data.json "0.2.6"]]
 
   :min-lein-version "2.0.0"
 

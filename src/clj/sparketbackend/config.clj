@@ -7,4 +7,6 @@
                        :merge
                        [(args)
                         (source/from-system-props)
-                        (source/from-env)]))
+                        (source/from-env)
+                        (source/from-file "secrets.edn")])) ;; get this file from matt. that is, do not keep secrets in version control
+

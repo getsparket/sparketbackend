@@ -2,7 +2,9 @@
   (:require [clojure.test :refer :all]
             [ring.mock.request :refer :all]
             [sparketbackend.handler :refer :all]
-            [sparketbackend.core :as core]))
+            [sparketbackend.core :as core]
+            [clj-http.client :as hc]
+            [clojure.core.async :as async]))
 
 (deftest test-app
   (testing "main route"
@@ -36,9 +38,9 @@
                                  :inexact-match 'Inexact-Match}
              'Exact-Match {:zip-code 'Zip-Code}}
         user-inputted-text "Apple iPhone 6S 128GB"
-        supported-things [{:name "Apple iPhone 6S 128GB"  :price 450}
-                          {:name  "Apple iPhone 6S 64GB"  :price 400}
-                          {:name  "Apple iPhone 6S 32GB"  :price 350}
+        supported-things [{:name "Apple iPhone 6S 128GB"   :price 450}
+                          {:name  "Apple iPhone 6S 64GB"   :price 400}
+                          {:name  "Apple iPhone 6S 32GB"   :price 350}
                           {:name  "Apple iPhone 6S+ 128GB" :price 500}
                           {:name  "Apple iPhone 6S+ 64GB"  :price 550}
                           {:name  "Apple iPhone 6S+ 32GB"  :price 350}]]
@@ -48,3 +50,28 @@
     (testing "can, given some user input, change the state"
       (let [app-state {:state 'Identifying-Thing}]
         (is (= {:state 'Exact-Match :most-similar {:name "Apple iPhone 6S 128GB", :price 450, :similarity 1.0}} (core/handle-identifying-item app-state supported-things user-inputted-text)))))))
+
+(deftest txt-state-machine
+  (let [fsm {'Start {:init 'Ready}
+             'Ready {:getting-name-of-thing 'Identifying-Thing}
+             'Identifying-Thing {:exact-match 'Exact-Match
+                                 :inexact-match 'Inexact-Match}
+             'Exact-Match {:sent-offer 'Sent-Offer
+                           :zip-code 'Zip-Code}}
+        app-state {:state 'Start :value "want-to-extract"}
+        in (async/chan)]
+    (testing "can be in a state, put app-state on the channel, then pop something about app-state, then change state"
+      )))
+
+(deftest txt
+  (let [])
+  (testing "can send a text with the test API"
+    (is (= 201 (:status (clj-http.client/post "https://api.twilio.com/2010-04-01/Accounts/AC59d0dd19a6c312c2ceda0697138e0c69/Messages"
+                                              {:form-params {"To" "+18043382663"
+                                                             "From" "+15005550006"
+                                                             "Body" "testing"}
+                                               :basic-auth "AC59d0dd19a6c312c2ceda0697138e0c69:0b3ae6707756861ce981827a4fd0fecb"})))))
+  (testing "can query the twilio API, put a response on an async-channel, then send a response message"
+    (let [in (async/chan)]
+      (async/put! in "val")
+      (async/take! in (fn [x] (is (= "val" x)))))))
