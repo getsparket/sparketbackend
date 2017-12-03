@@ -22,4 +22,5 @@ which you can see in `user.clj`, does some things.
 ## License
 
 CREATIVE COMMONS 0
+
 NO RIGHTS RESERVED
