@@ -1,10 +1,20 @@
-(ns sparketbackend.test.handler
+(ns sparketbackend.core-test
   (:require [clojure.test :refer :all]
             [ring.mock.request :refer :all]
             [sparketbackend.handler :refer :all]
             [sparketbackend.core :as core]
             [clj-http.client :as hc]
-            [clojure.core.async :as async]))
+            [clojure.core.async :as async]
+            [mount.core :as mount]))
+
+(use-fixtures
+  :once
+  (fn [f]
+    (mount/start-without #'sparketbackend.core/repl-server)
+    (f)))
+
+(deftest blah
+  (is (= 1 1)))
 
 (deftest test-app
   (testing "main route"
@@ -60,8 +70,7 @@
                            :zip-code 'Zip-Code}}
         app-state {:state 'Start :value "want-to-extract"}
         in (async/chan)]
-    (testing "can be in a state, put app-state on the channel, then pop something about app-state, then change state"
-      )))
+    (testing "can be in a state, put app-state on the channel, then pop something about app-state, then change state")))
 
 (deftest txt
   (let [])
@@ -71,7 +80,4 @@
                                                              "From" "+15005550006"
                                                              "Body" "testing"}
                                                :basic-auth "AC59d0dd19a6c312c2ceda0697138e0c69:0b3ae6707756861ce981827a4fd0fecb"})))))
-  (testing "can query the twilio API, put a response on an async-channel, then send a response message"
-    (let [in (async/chan)]
-      (async/put! in "val")
-      (async/take! in (fn [x] (is (= "val" x)))))))
+  )
