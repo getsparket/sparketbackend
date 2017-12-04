@@ -6,10 +6,7 @@
             [sparketbackend.twilio :refer :all]))
 
 (defn start []
-  (mount/start-without #'sparketbackend.core/repl-server)
-  (load-file "src/clj/sparketbackend/twilio.clj") ;; TODO how to assign mount state's variables to clojure variables?
-  (dispatch-new-messages)
-  (http-loop))
+  (mount/start-without #'sparketbackend.core/repl-server))
 
 (defn stop []
   (mount/stop-except #'sparketbackend.core/repl-server))

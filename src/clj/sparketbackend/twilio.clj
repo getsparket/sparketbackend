@@ -41,7 +41,7 @@
               :basic-auth basic-auth})))
 
 
-(defn get-most-recent-messages []
+(defn get-most-recent-messages [prod-sid prod-token]
   (let [url (str "https://api.twilio.com/2010-04-01/Accounts/" prod-sid "/Messages.json")
         basic-auth (str prod-sid ":" prod-token)]
     (-> (hc/get url {:as :json
@@ -73,12 +73,11 @@
       (spit "event.log" (str x "\n") :append true)) ;; stub for txt response
     (recur)))
 
-(defn http-loop []
-  (async/go-loop [seconds (atom 0)
-                    add-seconds! #(swap! seconds + %)]
+(defn http-loop [{:keys [twilio-account-sid twilio-auth-token] :as opts}]
+  (async/go-loop []
       (async/<! (async/timeout 5000)) ;; can take this out once the get request is reliably asynchronous
-      (-> (get-most-recent-messages)
+      (-> (get-most-recent-messages twilio-account-sid twilio-auth-token)
           most-recent-messages->new-messages
           put!-new-messages)
-      (recur (atom 0) #(swap! seconds + %))))
+      (recur)))
 
