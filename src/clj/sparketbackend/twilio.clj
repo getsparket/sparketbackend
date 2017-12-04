@@ -12,12 +12,12 @@
             [clojure.set :as set])
   (:gen-class))
 
-(def prod-sid (:twilio-account-sid env))
-(def prod-token (:twilio-auth-token env))
-(def phone-number (:phone-number env))
+(def prod-sid          (:twilio-account-sid env))
+(def prod-token        (:twilio-auth-token env))
+(def phone-number      (:phone-number env))
 
-(def test-sid (:twilio-test-account-sid env))
-(def test-token (:twilio-test-auth-token env))
+(def test-sid          (:twilio-test-account-sid env))
+(def test-token        (:twilio-test-auth-token env))
 (def test-phone-number (:test-phone-number env))
 
 
