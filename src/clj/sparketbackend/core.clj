@@ -60,54 +60,14 @@
     (log/info component "started"))
   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
 
-(def fsm {'Start {:init 'Ready}
-          'Ready {:getting-name-of-thing 'Identifying-Thing}
-          'Identifying-Thing {:exact-match 'Exact-Match
-                              :inexact-match 'Inexact-Match}
-          'Exact-Match {:accept-price? 'Accept-Price?}
-          'Accept-Price? {:zip-code 'Zip-Code}})
-
-(defn next-state
-  "Updates app-state to contain the state reached by transitioning from the
- current state."
-  [app-state transition]
-  (let [new-state (get-in fsm [(:state app-state) transition])]
-    (assoc app-state :state new-state)))
-
-(defn get-list-of-similarities
-  "should return a list of maps of closest to furthest matches for a user-inputted-text in app-state"
-  [app-state supported-things]
-  (let [user-inputted (:user-inputted-text app-state)]
-    (for [x supported-things]
-      (assoc x :similarity (fuzzy/jaro user-inputted (:name x))))))
-
-(defn get-most-similar-match
-  [app-state supported-things]
-  (first (second (first (group-by :similarity (get-list-of-similarities app-state supported-things))))))
-
-(defn handle-identifying-item [app-state supported-things user-inputted-text]
-  (let [similar (get-most-similar-match (assoc app-state :user-inputted-text user-inputted-text) supported-things)
-        in (async/chan)]
-    (-> app-state
-        (assoc :most-similar similar)
-        (next-state :exact-match))))
-
-(def text-chan (async/chan 10))
-
-(defn handle-exact-match [app-state]
-  (async/put! text-chan (str "you have a " (get-in app-state [:most-similar :name]) ". would you like " (get-in app-state [:most-similar :price]) " for it?"))
-  (-> app-state
-      (next-state :accept-price?)))
 
 
-(defn txt-loop []
+#_(defn txt-loop []
   (async/go-loop []
     (let [x (async/<! text-chan)]
       (println "testing actual texts" x)
       (twil/send-txt-message x "+18043382663"))
     (recur)))
-
-
 
 (defn -main [& args]
   (start-app args))

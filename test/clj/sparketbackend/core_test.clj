@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [ring.mock.request :refer :all]
             [sparketbackend.handler :refer :all]
+            [sparketbackend.twilio :as twil]
             [sparketbackend.core :as core]
             [clj-http.client :as hc]
             [clojure.core.async :as async]
@@ -25,7 +26,7 @@
     (let [response ((app) (request :get "/invalid"))]
       (is (= 404 (:status response))))))
 
-(deftest can-identify-an-object
+#_(deftest can-identify-an-object
   (testing "totally"
     (let [app-state {:user-inputted-text "Apple iPhone 6S 128GB"
                      :phone-number "+18043382663"
@@ -41,7 +42,7 @@
 
       (is (= "Apple iPhone 6S 128GB" (:name (core/get-most-similar-match app-state supported-things)))))))
 
-(deftest state-machine
+#_(deftest state-machine
   (let [fsm {'Start {:init 'Ready}
              'Ready {:getting-name-of-thing 'Identifying-Thing}
              'Identifying-Thing {:exact-match 'Exact-Match
@@ -72,7 +73,7 @@
         in (async/chan)]
     (testing "can be in a state, put app-state on the channel, then pop something about app-state, then change state")))
 
-(deftest txt
+(deftest txt ;; FIXME remove creds
   (let [])
   (testing "can send a text with the test API"
     (is (= 201 (:status (clj-http.client/post "https://api.twilio.com/2010-04-01/Accounts/AC59d0dd19a6c312c2ceda0697138e0c69/Messages"
@@ -81,3 +82,17 @@
                                                              "Body" "testing"}
                                                :basic-auth "AC59d0dd19a6c312c2ceda0697138e0c69:0b3ae6707756861ce981827a4fd0fecb"})))))
   )
+
+(deftest user-accounts-with-state-changes
+  (with-redefs [twil/customer-accounts (atom {"18043382663"
+                                              {:cust/address ""
+                                               :cust/state 'Start
+                                               :cust/things
+                                                [{:thing/name "Apple iPhone 6S+ 32GB"
+                                                  :thing/price "350"
+                                                  :thing/state 'Exact-Match
+                                                  :thing/txts []}]}})]
+    (let [txt {:phone-number "18043382663"
+               :body ""}])
+    (testing "can add another thing to user-accounts, which is app-state"
+      (is (= 'Start (twil/do-thing-with-txt! {:phone-number "18043382663"}))))))
