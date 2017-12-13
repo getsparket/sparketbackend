@@ -81,8 +81,7 @@
       (do
         (spit "event.log" (str x "\n") :append true)
         (swap! txt-atom conj x)
-        (do-thing-with-txt! x)
-        ))
+        (do-thing-with-txt! x)))
     (recur)))
 
 (defn http-loop [{:keys [twilio-account-sid twilio-auth-token] :as opts}]
@@ -96,7 +95,7 @@
 
 (defn txt-loop [env]
   (go-loop []
-    (let [x (<! chans/text-chan)]
-      (println "testing actual texts" x)
-      (send-txt-message env x "+18043382663"))
+    (let [body (<! chans/text-chan)]
+      (println "testing actual texts" body)
+      (send-txt-message env body "+18043382663"))
     (recur)))
