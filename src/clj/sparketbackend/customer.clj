@@ -26,3 +26,6 @@
     (for [x supported-things]
       (assoc x :similarity (fuzzy/jaro user-inputted (:name x))))))
 
+(defn get-most-similar-match
+  [app-state supported-things]
+  (first (second (first (group-by :similarity (get-list-of-similarities app-state supported-things))))))

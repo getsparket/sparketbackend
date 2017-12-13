@@ -97,5 +97,5 @@
   (go-loop []
     (let [body (<! chans/text-chan)]
       (println "testing actual texts" body)
-      (send-txt-message env body "+18043382663"))
+      #_(send-txt-message env body "+18043382663"))
     (recur)))
