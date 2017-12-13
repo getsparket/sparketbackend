@@ -12,7 +12,8 @@
 
 (def user-accounts (atom {}))
 
-(def customer-fsm {'Start             #{'Ready}
+(def customer-fsm {nil                #{'Start} ;; HACK nil means phone-number doesn't exist in customer-acounts. see do-thing-with-txt!
+                   'Start             #{'Ready}
                    'Ready             #{'Identifying-Thing}
                    'Identifying-Thing #{'Exact-Match 'Inexact-Match}
                    'Exact-Match       #{'Accept-Price?}

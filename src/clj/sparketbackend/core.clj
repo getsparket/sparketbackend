@@ -42,7 +42,7 @@
   (do
     (twil/http-loop env)
     (twil/dispatch-new-messages)
-    (twil/txt-loop))
+    (twil/txt-loop env))
   :stop
   nil ;; FIXME what goes here? how to remove references to go loops?
   )

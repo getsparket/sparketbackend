@@ -95,4 +95,4 @@
     (let [txt {:phone-number "18043382663"
                :body "I'd like to sell something"}]
       (testing "can update atom state based on txt"
-        (is (= 'Start (twil/do-thing-with-txt! txt)))))))
+        (is (= 'Ready (get-in (twil/do-thing-with-txt! txt) ["18043382663" :cust/state])))))))

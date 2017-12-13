@@ -14,14 +14,12 @@
   (:gen-class))
 
 
-
-
-(defn send-txt-message [body to]
-  (let [prod-sid (:twilio-account-sid env)
-        prod-token (:twilio-auth-token env)
+(defn send-txt-message [env body to]
+  (let [sid          (:twilio-account-sid env)
+        token        (:twilio-auth-token env)
         phone-number (:phone-number env)
-        url (str "https://api.twilio.com/2010-04-01/Accounts/"  prod-sid "/Messages")
-        basic-auth (str prod-sid ":" prod-token)]
+        url          (str "https://api.twilio.com/2010-04-01/Accounts/"  sid "/Messages")
+        basic-auth (str sid ":" token)]
     (hc/post url
                {:form-params {"To" to
                               "From" phone-number
@@ -29,19 +27,22 @@
                 :basic-auth basic-auth})))
 
 
-#_(defn test-send-txt-message [body to]
-  (let [url (str "https://api.twilio.com/2010-04-01/Accounts/" test-sid "/Messages")
-        basic-auth (str test-sid ":" test-token)]
+(defn test-send-txt-message [env body to]
+  (let [sid          (:twilio-test-account-sid env)
+        token        (:twilio-test-auth-token env)
+        phone-number (:test-phone-number env)
+        url          (str "https://api.twilio.com/2010-04-01/Accounts/" sid "/Messages")
+        basic-auth (str sid ":" token)]
     (hc/post url
              {:form-params {"To" to
-                            "From" test-phone-number
+                            "From" phone-number
                             "Body" body}
               :basic-auth basic-auth})))
 
 
-(defn get-most-recent-messages [prod-sid prod-token]
-  (let [url (str "https://api.twilio.com/2010-04-01/Accounts/" prod-sid "/Messages.json")
-        basic-auth (str prod-sid ":" prod-token)]
+(defn get-most-recent-messages [sid token]
+  (let [url        (str "https://api.twilio.com/2010-04-01/Accounts/" sid "/Messages.json")
+        basic-auth (str sid ":" token)]
     (-> (hc/get url {:as :json
                      :basic-auth basic-auth})
         :body
@@ -63,20 +64,12 @@
 (def customer-accounts (atom {}))
 
 (defn do-thing-with-txt!
-  "figure out what should be done with new txt, then do it"
+  "Given a new SMS, do-thing-with-txt calls the handler associated with the customer's current state. It then updates the customer"
   [{:keys [phone-number] :as txt}]
-  ;; all we should have to do is call the handler function associated with the the current state of the user, and pass in the body of the text.
-  ;; app-state has to be an atom. and things change only on receipt of txt messages.
-  ;; (1) find the customer's state
-  ;; (3) call the state-handler
-  ;; (4) merge the updated state into customer-accounts
-  ;; the state handlers should return the thing we want to merge with the atom.
-  (let [cus-map (get @customer-accounts phone-number)
-        cus-state (:cust/state cus-map)
-        #_new-state #_(cus-map->new-state cus-map cus-state)]
-    #_(swap! customer-accounts update ["blah" "blah"] new-state)
-    ((get fh/fsm->handler cus-state) cus-map txt)
-    cus-state))
+  (let [customer         (get @customer-accounts phone-number)
+        state            (:cust/state customer)
+        updated-customer ((get fh/fsm->handler state) customer txt)]
+    (swap! customer-accounts assoc-in [phone-number] updated-customer)))
 
 
 
@@ -88,7 +81,7 @@
       (do
         (spit "event.log" (str x "\n") :append true)
         (swap! txt-atom conj x)
-        ;;(do-thing-with-txt x)
+        (do-thing-with-txt! x)
         ))
     (recur)))
 
@@ -100,11 +93,10 @@
                   put!-new-messages)
               (recur))))
 
-(defn txt-loop []
+
+(defn txt-loop [env]
   (go-loop []
     (let [x (<! chans/text-chan)]
       (println "testing actual texts" x)
-      (send-txt-message x "+18043382663"))
+      (send-txt-message env x "+18043382663"))
     (recur)))
-
-
