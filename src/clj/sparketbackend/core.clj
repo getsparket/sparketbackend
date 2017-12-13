@@ -41,7 +41,8 @@
   :start
   (do
     (twil/http-loop env)
-    (twil/dispatch-new-messages))
+    (twil/dispatch-new-messages)
+    (twil/txt-loop))
   :stop
   nil ;; FIXME what goes here? how to remove references to go loops?
   )
@@ -62,12 +63,6 @@
 
 
 
-#_(defn txt-loop []
-  (async/go-loop []
-    (let [x (async/<! text-chan)]
-      (println "testing actual texts" x)
-      (twil/send-txt-message x "+18043382663"))
-    (recur)))
 
 (defn -main [& args]
   (start-app args))

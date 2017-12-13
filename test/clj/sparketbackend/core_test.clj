@@ -88,11 +88,11 @@
                                               {:cust/address ""
                                                :cust/state 'Start
                                                :cust/things
-                                                [{:thing/name "Apple iPhone 6S+ 32GB"
-                                                  :thing/price "350"
-                                                  :thing/state 'Exact-Match
-                                                  :thing/txts []}]}})]
+                                               [{:thing/name "Apple iPhone 6S+ 32GB"
+                                                 :thing/price "350"
+                                                 :thing/state 'Exact-Match
+                                                 :thing/txts []}]}})]
     (let [txt {:phone-number "18043382663"
-               :body ""}])
-    (testing "can add another thing to user-accounts, which is app-state"
-      (is (= 'Start (twil/do-thing-with-txt! {:phone-number "18043382663"}))))))
+               :body "I'd like to sell something"}]
+      (testing "can update atom state based on txt"
+        (is (= 'Start (twil/do-thing-with-txt! txt)))))))

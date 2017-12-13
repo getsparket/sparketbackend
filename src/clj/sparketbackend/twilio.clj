@@ -1,33 +1,25 @@
 (ns sparketbackend.twilio
   (:require [sparketbackend.handler :as handler]
+            [sparketbackend.chans :as chans]
+            [sparketbackend.fsm.handlers :as fh]
             [luminus.repl-server :as repl]
             [sparketbackend.config :refer [env]]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
             [mount.core :as mount]
-            [clj-fuzzy.metrics :as fuzzy]
-            [clojure.core.async :as async]
+            [clojure.core.async :refer [put! go-loop <! >! onto-chan]]
             [clj-http.client :as hc]
             [clojure.data.json :as json]
             [clojure.set :as set])
   (:gen-class))
 
-(def prod-token        (:twilio-auth-token env))
-(def phone-number      (:phone-number env))
 
-(def test-sid          (:twilio-test-account-sid env))
-(def test-token        (:twilio-test-auth-token env))
-(def test-phone-number (:test-phone-number env))
-
-(def txts {'Start "Welcome to Sparket. Ready to take your order!"
-           'Ready "Thanks for telling me that. I'm figuring out what you said!" ;; could be a function
-           'Identifying-Thing "Something goes here!"
-           })
 
 
 (defn send-txt-message [body to]
   (let [prod-sid (:twilio-account-sid env)
         prod-token (:twilio-auth-token env)
+        phone-number (:phone-number env)
         url (str "https://api.twilio.com/2010-04-01/Accounts/"  prod-sid "/Messages")
         basic-auth (str prod-sid ":" prod-token)]
     (hc/post url
@@ -57,8 +49,6 @@
 
 (def dispatched-messages (atom #{}))
 
-(def incoming (async/chan 100))
-
 (defn most-recent-messages->new-messages
   "given the most recent messages, return only the ones that aren't stored. also, update stored messages"
   [recent-messages]
@@ -68,7 +58,7 @@
 
 
 (defn put!-new-messages [new-messages]
-  (async/onto-chan incoming new-messages false))
+  (onto-chan chans/incoming new-messages false))
 
 (def customer-accounts (atom {}))
 
@@ -85,11 +75,7 @@
         cus-state (:cust/state cus-map)
         #_new-state #_(cus-map->new-state cus-map cus-state)]
     #_(swap! customer-accounts update ["blah" "blah"] new-state)
-
-
-
-    ;; do-thing-with-txt modifies the customer-accounts atom. it does
-
+    ((get fh/fsm->handler cus-state) cus-map txt)
     cus-state))
 
 
@@ -97,8 +83,8 @@
 (def txt-atom (atom #{}))
 
 (defn dispatch-new-messages []
-  (async/go-loop []
-    (if-let [x (async/<! incoming)]
+  (go-loop []
+    (if-let [x (<! chans/incoming)]
       (do
         (spit "event.log" (str x "\n") :append true)
         (swap! txt-atom conj x)
@@ -114,5 +100,11 @@
                   put!-new-messages)
               (recur))))
 
-(defn surprise [{:keys [something something-else] :as opts}]
-  (+ something something-else))
+(defn txt-loop []
+  (go-loop []
+    (let [x (<! chans/text-chan)]
+      (println "testing actual texts" x)
+      (send-txt-message x "+18043382663"))
+    (recur)))
+
+
