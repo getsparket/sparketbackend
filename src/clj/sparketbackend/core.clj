@@ -1,15 +1,14 @@
 (ns sparketbackend.core
   (:require [sparketbackend.handler :as handler]
-            [sparketbackend.twilio :as twil]
             [luminus.repl-server :as repl]
             [luminus.http-server :as http]
             [sparketbackend.config :refer [env]]
-            [sparketbackend.twilio :as twil]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
             [mount.core :as mount]
             [clj-fuzzy.metrics :as fuzzy]
-            [clojure.core.async :as async])
+            [clojure.core.async :as async]
+            [sparketbackend.chans :as chans])
   (:gen-class))
 
 
@@ -35,18 +34,6 @@
                 :stop
                 (when repl-server
                   (repl/stop repl-server)))
-
-(mount/defstate ^{:on-reload :noop}
-  twilio
-  :start
-  (do
-    (twil/http-loop env)
-    (twil/dispatch-new-messages)
-    (twil/txt-loop env))
-  :stop
-  nil ;; FIXME what goes here? how to remove references to go loops?
-  )
-
 
 (defn stop-app []
   (doseq [component (:stopped (mount/stop))]

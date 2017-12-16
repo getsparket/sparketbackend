@@ -1,13 +1,12 @@
 (ns sparketbackend.customer
   (:require [sparketbackend.config :refer [env]]
             [clojure.tools.logging :as log]
-            [mount.core :as mount]
             [clojure.core.async :as async :refer [put! chan]]
             [clj-fuzzy.metrics :as fuzzy])
   (:gen-class))
 
 (def txts {'Start "Welcome to Sparket. Ready to take your order!"
-           'Ready "Thanks for telling me that. I'm figuring out what you said!" ;; could be a function
+           'Ready "Thanks for telling me that. I'm figuring out what you said!"
            'Identifying-Thing "Something goes here!"})
 
 (def user-accounts (atom {}))
