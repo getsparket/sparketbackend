@@ -7,8 +7,7 @@
             [clojure.tools.logging :as log]
             [mount.core :as mount]
             [clj-fuzzy.metrics :as fuzzy]
-            [clojure.core.async :as async]
-            [sparketbackend.chans :as chans])
+            [clojure.core.async :as async])
   (:gen-class))
 
 

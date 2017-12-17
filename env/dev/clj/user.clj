@@ -3,7 +3,6 @@
             [sparketbackend.figwheel :refer [start-fw stop-fw cljs]]
             [sparketbackend.core :as core]
             [clojure.core.async :refer :all]
-            [sparketbackend.chans :as chans]
             [sparketbackend.twilio :refer :all]
             [sparketbackend.customer :as cust]))
 

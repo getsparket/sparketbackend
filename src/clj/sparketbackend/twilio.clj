@@ -1,6 +1,5 @@
 (ns sparketbackend.twilio
   (:require [sparketbackend.handler :as handler]
-            [sparketbackend.chans :as chans]
             [luminus.repl-server :as repl]
             [sparketbackend.customer :as cust]
             [sparketbackend.config :refer [env]]
@@ -84,14 +83,6 @@
           (do-thing-with-txt! x)))
       (recur (<! incoming)))
     incoming))
-
-#_(defn http-loop [{:keys [twilio-account-sid twilio-auth-token] :as opts}]
-  (go-loop []
-      (future (Thread/sleep 5000)
-              (-> (get-most-recent-messages twilio-account-sid twilio-auth-token)
-                  most-recent-messages->new-messages
-                  put!-new-messages)
-              (recur))))
 
 (mount/defstate ^{:on-reload :noop}
   txt-dispatcher
