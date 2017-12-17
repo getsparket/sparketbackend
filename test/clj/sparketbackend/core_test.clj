@@ -42,26 +42,17 @@
 
     (is (= "Apple iPhone 6S 128GB" (:name (cust/get-most-similar-match app-state supported-things))))))
 
-(deftest txt-state-machine
-  (let [fsm {'Start {:init 'Ready}
-             'Ready {:getting-name-of-thing 'Identifying-Thing}
-             'Identifying-Thing {:exact-match 'Exact-Match
-                                 :inexact-match 'Inexact-Match}
-             'Exact-Match {:sent-offer 'Sent-Offer
-                           :zip-code 'Zip-Code}}
-        app-state {:state 'Start :value "want-to-extract"}
-        in (async/chan)]
-    (testing "can be in a state, put app-state on the channel, then pop something about app-state, then change state")))
-
-(deftest txt ;; FIXME remove creds
-  (let [])
+(deftest txt
   (testing "can send a text with the test API"
-    (is (= 201 (:status (clj-http.client/post "https://api.twilio.com/2010-04-01/Accounts/AC59d0dd19a6c312c2ceda0697138e0c69/Messages"
-                                              {:form-params {"To" "+18043382663"
-                                                             "From" "+15005550006"
-                                                             "Body" "testing"}
-                                               :basic-auth "AC59d0dd19a6c312c2ceda0697138e0c69:0b3ae6707756861ce981827a4fd0fecb"})))))
-  )
+    (let [sid                      (:twilio-test-account-sid sparketbackend.config/env)
+          token                    (:twilio-test-auth-token sparketbackend.config/env)
+          twilio-test-phone-number (:test-phone-number sparketbackend.config/env)
+          dummy-phone-number       (:dummy-phone-number sparketbackend.config/env)]
+      (is (= 201 (:status (clj-http.client/post (str "https://api.twilio.com/2010-04-01/Accounts/" sid "/Messages")
+                                                {:form-params {"To" dummy-phone-number
+                                                               "From" twilio-test-phone-number
+                                                               "Body" "testing"}
+                                                 :basic-auth (str sid ":" token)})))))))
 
 (deftest user-accounts-with-state-changes
   (with-redefs [twil/customer-accounts (atom {"18043382663"
