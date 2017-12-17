@@ -4,9 +4,10 @@
             [sparketbackend.handler :refer :all]
             [sparketbackend.twilio :as twil]
             [sparketbackend.core :as core]
-            [clj-http.client :as hc]
+            [clj-http.client :as http]
             [clojure.core.async :as async]
             [mount.core :as mount]
+            [sparketbackend.config :refer [env]]
             [sparketbackend.customer :as cust]))
 
 (use-fixtures
@@ -14,9 +15,6 @@
   (fn [f]
     (mount/start-without #'sparketbackend.core/repl-server)
     (f)))
-
-(deftest blah
-  (is (= 1 1)))
 
 (deftest test-app
   (testing "main route"
@@ -44,26 +42,29 @@
 
 (deftest txt
   (testing "can send a text with the test API"
-    (let [sid                      (:twilio-test-account-sid sparketbackend.config/env)
-          token                    (:twilio-test-auth-token sparketbackend.config/env)
-          twilio-test-phone-number (:test-phone-number sparketbackend.config/env)
-          dummy-phone-number       (:dummy-phone-number sparketbackend.config/env)]
-      (is (= 201 (:status (clj-http.client/post (str "https://api.twilio.com/2010-04-01/Accounts/" sid "/Messages")
+    (let [sid                      (:twilio-test-account-sid env)
+          token                    (:twilio-test-auth-token env)
+          twilio-test-phone-number (:test-phone-number env)
+          dummy-phone-number       (:dummy-phone-number env)]
+      (is (= 201 (:status (http/post (str "https://api.twilio.com/2010-04-01/Accounts/" sid "/Messages")
                                                 {:form-params {"To" dummy-phone-number
                                                                "From" twilio-test-phone-number
                                                                "Body" "testing"}
                                                  :basic-auth (str sid ":" token)})))))))
 
 (deftest user-accounts-with-state-changes
-  (with-redefs [twil/customer-accounts (atom {"18043382663"
-                                              {:cust/address ""
-                                               :cust/state 'Start
-                                               :cust/things
-                                               [{:thing/name "Apple iPhone 6S+ 32GB"
-                                                 :thing/price "350"
-                                                 :thing/state 'Exact-Match
-                                                 :thing/txts []}]}})]
-    (let [txt {:phone-number "18043382663"
-               :body "I'd like to sell something"}]
+  (let [dummy-phone-number (:dummy-phone-number env)
+        txt {:phone-number dummy-phone-number
+             :body "I'd like to sell something"
+             :to (:test-phone-number env)}]
+    (with-redefs [twil/customer-accounts (atom {dummy-phone-number
+                                                {:cust/address ""
+                                                 :cust/state 'Start
+                                                 :cust/things
+                                                  [{:thing/name "Apple iPhone 6S+ 32GB"
+                                                    :thing/price "350"
+                                                    :thing/state 'Exact-Match
+                                                    :thing/txts []}]}})]
       (testing "can update atom state based on txt"
-        (is (= 'Ready (get-in (twil/do-thing-with-txt! txt) ["18043382663" :cust/state])))))))
+        (is (= 'Ready (get-in (twil/do-thing-with-txt! txt)
+                              [dummy-phone-number :cust/state])))))))

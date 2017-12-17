@@ -7,7 +7,7 @@
             [clojure.tools.logging :as log]
             [mount.core :as mount]
             [clojure.core.async :refer [put! go-loop <! >! onto-chan timeout alts! thread chan close!]]
-            [clj-http.client :as hc]
+            [clj-http.client :as http]
             [clojure.data.json :as json]
             [clojure.set :as set])
   (:gen-class))
@@ -20,7 +20,7 @@
         phone-number (:phone-number env)
         url          (str "https://api.twilio.com/2010-04-01/Accounts/"  sid "/Messages")
         basic-auth (str sid ":" token)]
-    (hc/post url
+    (http/post url
                {:form-params {"To" to
                               "From" phone-number
                               "Body" body}
@@ -33,7 +33,7 @@
         phone-number (:test-phone-number env)
         url          (str "https://api.twilio.com/2010-04-01/Accounts/" sid "/Messages")
         basic-auth (str sid ":" token)]
-    (hc/post url
+    (http/post url
              {:form-params {"To" to
                             "From" phone-number
                             "Body" body}
@@ -43,7 +43,7 @@
 (defn get-most-recent-messages [sid token]
   (let [url        (str "https://api.twilio.com/2010-04-01/Accounts/" sid "/Messages.json")
         basic-auth (str sid ":" token)]
-    (-> (hc/get url {:as :json
+    (-> (http/get url {:as :json
                      :basic-auth basic-auth})
         :body
         :messages)))
