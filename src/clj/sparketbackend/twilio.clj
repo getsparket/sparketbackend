@@ -63,11 +63,11 @@
 
 (defn do-thing-with-txt!
   "Given a new SMS, do-thing-with-txt calls the handler associated with the customer's current state. It then updates the customer"
-  [{:keys [to] :as txt}]
-  (let [customer         (get @customer-accounts to)
+  [{:keys [from] :as txt}]
+  (let [customer         (get @customer-accounts from)
         state            (:cust/state customer)
         updated-customer ((get fsm->handler state) customer txt)]
-    (swap! customer-accounts assoc-in [to] updated-customer)))
+    (swap! customer-accounts assoc-in [from] updated-customer)))
 
 
 
@@ -144,7 +144,7 @@
   ;; TODO error handling?
   (-> cust
       (assoc :cust/state 'Ready)
-      (update :cust/txts conj txt)))
+      (update :cust/txts (comp vec conj) txt)))
 
 (defn handle-ready [cust txt] ;; placeholder
   (print "the state is ready")

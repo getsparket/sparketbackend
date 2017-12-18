@@ -56,7 +56,16 @@
   (let [dummy-phone-number (:dummy-phone-number env)
         txt {:phone-number dummy-phone-number
              :body "I'd like to sell something"
-             :to (:test-phone-number env)}]
+             :from dummy-phone-number}
+        after-tx {dummy-phone-number
+                  {:cust/address ""
+                   :cust/state 'Ready
+                   :cust/things
+                   [{:thing/name "Apple iPhone 6S+ 32GB"
+                     :thing/price "350"
+                     :thing/state 'Exact-Match
+                     :thing/txts []}]
+                   :cust/txts [txt]}}]
     (with-redefs [twil/customer-accounts (atom {dummy-phone-number
                                                 {:cust/address ""
                                                  :cust/state 'Start
@@ -66,5 +75,5 @@
                                                     :thing/state 'Exact-Match
                                                     :thing/txts []}]}})]
       (testing "can update atom state based on txt"
-        (is (= 'Ready (get-in (twil/do-thing-with-txt! txt)
+        (is (= after-tx (twil/do-thing-with-txt! txt) #_(get-in (twil/do-thing-with-txt! txt)
                               [dummy-phone-number :cust/state])))))))
