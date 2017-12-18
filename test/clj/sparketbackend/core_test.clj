@@ -71,3 +71,23 @@
       (testing "now test that after do-thing-with-txt!, customer-accounts has desired values"
         (do (twil/do-thing-with-txt! txt)
             (is (= after-tx @twil/customer-accounts)))))))
+
+(deftest integration
+  (let [dummy-phone-number (:dummy-phone-number env)
+        another-dummy      (:twilio-dev-phone-number env)]
+  (with-redefs [twil/customer-accounts (atom {})
+                twil/dispatched-messages (atom #{})
+                twil/get-most-recent-messages (fn [_ _] ;; mock function
+                                                [{:from dummy-phone-number
+                                                  :body "Hello!"
+                                                  :to another-dummy}])]
+    (let [after-handle-start {dummy-phone-number
+                              #:cust{:state 'Ready,
+                                     :txts
+                                     [{:from dummy-phone-number
+                                       :body "Hello!"
+                                       :to another-dummy}]}}]
+      (testing "intending to test that: given a new txt already picked up by the GET request, we should have created a new entry in the db with the correct arguments"
+        (do
+          (Thread/sleep 5500) ;; HACK 5500 guarantees http-loop runs at least once.
+          (is (= after-handle-start @twil/customer-accounts))))))))
