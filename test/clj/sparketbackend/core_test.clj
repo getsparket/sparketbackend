@@ -74,6 +74,8 @@
                                                     :thing/price "350"
                                                     :thing/state 'Exact-Match
                                                     :thing/txts []}]}})]
-      (testing "can update atom state based on txt"
-        (is (= after-tx (twil/do-thing-with-txt! txt) #_(get-in (twil/do-thing-with-txt! txt)
-                              [dummy-phone-number :cust/state])))))))
+      (testing "first test that customer-accounts is different before tx"
+        (is (not= after-tx @twil/customer-accounts)))
+      (testing "now test that after do-thing-with-txt!, customer-accounts has desired values"
+        (do (twil/do-thing-with-txt! txt)
+            (is (= after-tx @twil/customer-accounts)))))))
