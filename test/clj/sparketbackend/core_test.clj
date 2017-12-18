@@ -60,20 +60,12 @@
         after-tx {dummy-phone-number
                   {:cust/address ""
                    :cust/state 'Ready
-                   :cust/things
-                   [{:thing/name "Apple iPhone 6S+ 32GB"
-                     :thing/price "350"
-                     :thing/state 'Exact-Match
-                     :thing/txts []}]
+                   :cust/things []
                    :cust/txts [txt]}}]
     (with-redefs [twil/customer-accounts (atom {dummy-phone-number
                                                 {:cust/address ""
                                                  :cust/state 'Start
-                                                 :cust/things
-                                                  [{:thing/name "Apple iPhone 6S+ 32GB"
-                                                    :thing/price "350"
-                                                    :thing/state 'Exact-Match
-                                                    :thing/txts []}]}})]
+                                                 :cust/things []}})]
       (testing "first test that customer-accounts is different before tx"
         (is (not= after-tx @twil/customer-accounts)))
       (testing "now test that after do-thing-with-txt!, customer-accounts has desired values"
