@@ -40,8 +40,8 @@
 
     (is (= "Apple iPhone 6S 128GB" (:name (cust/get-most-similar-match app-state supported-things))))))
 
-(deftest txt
-  (testing "can send a text with the test API"
+(deftest twilio-test-api
+  (testing "can send a text with the test API. this tests whether twilio is up."
     (let [sid                      (:twilio-test-account-sid env)
           token                    (:twilio-test-auth-token env)
           twilio-test-phone-number (:test-phone-number env)
