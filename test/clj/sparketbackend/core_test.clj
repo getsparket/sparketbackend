@@ -96,8 +96,7 @@
   (let [dummy-phone-number (:dummy-phone-number env)
         dev-sparket        (:twilio-dev-phone-number env)]
     (with-redefs [twil/customer-accounts (atom {})
-                  twil/dispatched-messages (atom #{})
-                  ]
+                  twil/dispatched-messages (atom #{})]
       (let [start-txt [{:from dummy-phone-number
                          :body "Hello!"
                          :to dev-sparket}]
