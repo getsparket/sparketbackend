@@ -74,19 +74,19 @@
 
 (deftest integration
   (let [dummy-phone-number (:dummy-phone-number env)
-        another-dummy      (:twilio-dev-phone-number env)]
+        dev-sparket      (:twilio-dev-phone-number env)]
   (with-redefs [twil/customer-accounts (atom {})
                 twil/dispatched-messages (atom #{})
                 twil/get-most-recent-messages (fn [_ _] ;; mock function
                                                 [{:from dummy-phone-number
                                                   :body "Hello!"
-                                                  :to another-dummy}])]
+                                                  :to dev-sparket}])]
     (let [after-handle-start {dummy-phone-number
                               #:cust{:state 'Ready,
                                      :txts
                                      [{:from dummy-phone-number
                                        :body "Hello!"
-                                       :to another-dummy}]}}]
+                                       :to dev-sparket}]}}]
       (testing "intending to test that: given a new txt already picked up by the GET request, we should have created a new entry in the db with the correct arguments"
         (do
           (Thread/sleep 5500) ;; 5500 guarantees http-loop runs at least once.
@@ -94,20 +94,23 @@
 
 (deftest customer-gets-thing
   (let [dummy-phone-number (:dummy-phone-number env)
-        another-dummy      (:twilio-dev-phone-number env)]
+        dev-sparket        (:twilio-dev-phone-number env)]
     (with-redefs [twil/customer-accounts (atom {})
                   twil/dispatched-messages (atom #{})
-                  ;; normal repl flow: in test-mode, do not mount/start the whole app. do not start http-loop.
                   ]
       (let [start-txt [{:from dummy-phone-number
                          :body "Hello!"
-                         :to another-dummy}]
+                         :to dev-sparket}]
             after-handle-start {dummy-phone-number
                                 #:cust{:state 'Ready,
                                        :txts
                                        [{:from dummy-phone-number
                                          :body "Hello!"
-                                         :to another-dummy}]}}]
+                                         :to dev-sparket}
+                                        ]}}
+            ready-txt {:from dummy-phone-number
+                       :body ""
+                       :to dev-sparket}]
         (testing "intending to test that a customer can go from start to ready to identifying item"
           (do
             (twil/put!-new-messages start-txt)
