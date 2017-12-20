@@ -99,18 +99,30 @@
                   twil/dispatched-messages (atom #{})]
       (let [start-txt [{:from dummy-phone-number
                          :body "Hello!"
-                         :to dev-sparket}]
+                        :to dev-sparket}]
+            ready-txt [{:from dummy-phone-number
+                        :body "i'd like to sell an iphone 6s+ 32gb"
+                        :to dev-sparket}]
             after-handle-start {dummy-phone-number
                                 #:cust{:state 'Ready,
                                        :txts
                                        [{:from dummy-phone-number
                                          :body "Hello!"
                                          :to dev-sparket}]}}
-            ready-txt {:from dummy-phone-number
-                       :body ""
-                       :to dev-sparket}]
+            after-handle-ready {dummy-phone-number
+                                #:cust{:state 'Identifying-Thing,
+                                       :txts
+                                       [{:from dummy-phone-number
+                                         :body "Hello!"
+                                         :to dev-sparket}
+                                        {:from dummy-phone-number
+                                         :body "i'd like to sell an iphone 6s+ 32gb"
+                                         :to dev-sparket}]}}]
         (testing "intending to test that a customer can go from start to ready to identifying item"
           (do
             (twil/put!-new-messages start-txt)
             (Thread/sleep 100) ;; HACK async/put!, then later take! then later dispatch-new-messages takes a little time. TODO put these in a parking loop
-            (is (= after-handle-start @twil/customer-accounts))))))))
+            (is (= after-handle-start @twil/customer-accounts))
+            (twil/put!-new-messages ready-txt)
+            (Thread/sleep 100)
+            (is (= after-handle-ready @twil/customer-accounts))))))))

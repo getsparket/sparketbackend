@@ -108,7 +108,7 @@
   (let [txt-chan (chan)]
     (go-loop [body (<! txt-chan)]
       (when body
-        (print "testing txt-loop")
+        (log/info "testing txt-loop")
         #_(send-txt-message env body "+18043382663")
         (recur (<! txt-chan))))
     txt-chan))
@@ -138,7 +138,7 @@
 (defn handle-start
   "to handle start, we tell the user: What do you have to sell to me?."
   [cust txt]
-  (print "the state is started")
+  (log/info "the state is started")
   ;; put a text message on the channel. return an updated state. state transitions should do nothing.
   (put! new-txt-sender (get cust/txts 'Start))
   ;; TODO error handling?
@@ -146,16 +146,21 @@
       (assoc :cust/state 'Ready)
       (update :cust/txts (comp vec conj) txt)))
 
-(defn handle-ready [cust txt] ;; placeholder
-  (print "the state is ready")
-  cust)
+(defn handle-ready [cust txt]
+  (log/info "the state is ready")
+  (put! new-txt-sender (get cust/txts 'Ready))
+  (-> cust
+      (assoc :cust/state 'Identifying-Thing)
+      (update :cust/txts (comp vec conj) txt)))
 
-(defn identifying-thing [cust txt] ;; placeholder
-  (print "the state is identifying")
-  cust)
+(defn handle-identifying-thing [cust txt]
+  (log/info "the state is identifying")
+  (-> cust
+      (assoc :cust/state 'Exact-Match)
+      (update :cust/txts (comp vec conj) txt)))
 
 (def fsm->handler
   {nil    #'handle-start
    'Start #'handle-start
    'Ready #'handle-ready
-   'Identifying-Thing #'identifying-thing})
+   'Identifying-Thing #'handle-identifying-thing})
