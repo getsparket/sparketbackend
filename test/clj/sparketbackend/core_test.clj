@@ -13,7 +13,7 @@
 (use-fixtures
   :once
   (fn [f]
-    (mount/start-without #'sparketbackend.core/repl-server)
+    (mount/start-without #'sparketbackend.core/repl-server #_#'sparketbackend.twilio/http-loop)
     (f)))
 
 (deftest test-app
@@ -89,11 +89,12 @@
                                        :to another-dummy}]}}]
       (testing "intending to test that: given a new txt already picked up by the GET request, we should have created a new entry in the db with the correct arguments"
         (do
-          (Thread/sleep 5500) ;; HACK 5500 guarantees http-loop runs at least once.
+          (Thread/sleep 5500) ;; 5500 guarantees http-loop runs at least once.
           (is (= after-handle-start @twil/customer-accounts))))))))
+
 (deftest customer-gets-thing
   (let [dummy-phone-number (:dummy-phone-number env)
-        another-dummy      (:twilio-dev-phone-number env)] ;; FIXME change!
+        another-dummy      (:twilio-dev-phone-number env)]
     (with-redefs [twil/customer-accounts (atom {})
                   twil/dispatched-messages (atom #{})
                   ;; normal repl flow: in test-mode, do not mount/start the whole app. do not start http-loop.
