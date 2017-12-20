@@ -105,8 +105,7 @@
                                        :txts
                                        [{:from dummy-phone-number
                                          :body "Hello!"
-                                         :to dev-sparket}
-                                        ]}}
+                                         :to dev-sparket}]}}
             ready-txt {:from dummy-phone-number
                        :body ""
                        :to dev-sparket}]
